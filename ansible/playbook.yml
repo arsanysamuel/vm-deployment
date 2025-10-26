@@ -30,3 +30,14 @@
     - name: Print current VM size
       ansible.builtin.debug:
         msg: "Current VM size: {{ vm_info.vms[0].hardware_profile.vm_size }}"
+
+    - name: Resize VM
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}"
+        vm_size: "{{ vm_size }}"
+      register: resize_result
+
+    - name: Display resize result
+      ansible.builtin.debug:
+        msg: "VM resized to: {{ vm_size }}"
