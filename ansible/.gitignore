@@ -1,0 +1,67 @@
+# Ansible Execution Environment Build Artifacts
+context/
+build.log
+*.tar
+
+# Ansible Runtime Files
+*.retry
+*.log
+.ansible/
+ansible.log
+
+# Inventory Files (if they contain sensitive data)
+inventory/hosts
+inventory/*.ini
+!inventory/hosts.example
+!inventory/*.ini.example
+
+# Vault Files (encrypted secrets)
+*vault*
+*secret*
+*.vault
+group_vars/*/vault.yml
+host_vars/*/vault.yml
+
+# Collections and Roles Downloaded Locally
+collections/
+roles/
+!roles/requirements.yml
+!collections/requirements.yml
+
+# Python Virtual Environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Ansible Navigator
+ansible-navigator.log
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+
+# Azure/Cloud Credentials (if stored locally - shouldn't be!)
+azure-credentials.yml
+*.pem
+*.key
+credentials.yml
+
+playbook-artifact*.json

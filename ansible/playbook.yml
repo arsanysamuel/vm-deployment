@@ -1,0 +1,32 @@
+- name: Get Azure VM details and create inventory
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Get public IP address
+      azure.azcollection.azure_rm_publicipaddress_info:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_public_ip_name }}"
+      register: ip_info
+
+    - name: Add VM to inventory  # dynamic inventory
+      ansible.builtin.add_host:
+        name: "{{ vm_host }}"
+        ansible_host: "{{ ip_info.publicipaddresses[0].ip_address }}"
+        ansible_user: "{{ vm_username }}"
+        ansible_ssh_private_key_file: ~/.ssh/id_rsa
+
+- name: Update VM
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Get VM info
+      azure.azcollection.azure_rm_virtualmachine_info:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}"
+      register: vm_info
+
+    - name: Print current VM size
+      ansible.builtin.debug:
+        msg: "Current VM size: {{ vm_info.vms[0].hardware_profile.vm_size }}"

@@ -1,0 +1,6 @@
+resource_group: "coca-cola"
+vm_name: "coca-cola-virtual-machine"
+vm_host: "cocacola_vm"
+vm_public_ip_name: "coca-cola-public-ip"
+vm_username: "cocacola"
+vm_size: "Standard_B1s"
