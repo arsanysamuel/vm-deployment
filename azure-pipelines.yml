@@ -1,0 +1,74 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  AZURE_SERVICE_CONNECTION: 'azure-service-connection'
+  TF_VERSION: '1.13.0'
+  TF_DIR: 'infrastructure/environments/test'
+
+stages:
+  - stage: Terraform
+    displayName: 'Apply Infrastructure'
+    jobs:
+      - job: TerraformApply
+        steps:
+          - task: TerraformInstaller@1
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '$(TF_VERSION)'
+
+          - task: AzureCLI@2
+            displayName: 'Terraform Init, Plan & Apply'
+            inputs:
+              azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              workingDirectory: '$(TF_DIR)'
+              inlineScript: |
+                terraform init
+                terraform plan
+                terraform apply -auto-approve
+  
+  - stage: Ansible
+    displayName: 'Configure VM'
+    dependsOn: Terraform
+    condition: succeeded()
+    jobs:
+      - job: AnsibleConfigure
+        steps:
+          - task: Bash@3
+            displayName: 'Install Ansible'
+            inputs:
+              targetType: 'inline'
+              script: |
+                pip3 install ansible
+                ansible-galaxy collection install -r requriements.yml
+          
+          - task: DownloadSecureFile@1
+            name: sshKey
+            displayName: 'Download SSH Key'
+            inputs:
+              secureFile: 'azure-vm-private-key'
+          
+          - task: Bash@3
+            displayName: 'Setup SSH Key'
+            inputs:
+              targetType: 'inline'
+              script: |
+                mkdir -p ~/.ssh
+                cp $(sshKey.secureFilePath) ~/.ssh/id_rsa
+                chmod 600 ~/.ssh/id_rsa
+          
+          - task: AzureCLI@2
+            displayName: 'Run Ansible Playbook'
+            inputs:
+              azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              workingDirectory: 'ansible'
+              inlineScript: |
+                export AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+                ansible-playbook playbook.yml
